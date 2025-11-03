@@ -109,6 +109,9 @@ def nivel_riesgo_coronario(prob_raw):
         return "Bajo"
 
 # --- RUTA DE API PRINCIPAL (ACTUALIZADA) ---
+@app.route('/api/evaluate', methods=['GET'])
+def evaluate_risk_get():
+    return jsonify({"message": "Hello, World!"})
 
 @app.route('/api/evaluate', methods=['POST'])
 def evaluate_risk():
