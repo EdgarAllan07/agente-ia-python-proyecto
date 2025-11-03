@@ -112,7 +112,7 @@ def nivel_riesgo_coronario(prob_raw):
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate_risk_get():
     return jsonify({"message": "Hello, World!"})
-
+    
 @app.route('/api/evaluate', methods=['POST'])
 def evaluate_risk():
     if not model or not scaler:
@@ -225,4 +225,5 @@ def evaluate_risk():
         return jsonify({"error": f"Error interno del agente: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(port=int(os.environ.get("PORT", 5001)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
