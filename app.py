@@ -8,15 +8,33 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+model = None
+scaler = None
+
 # --- Cargar los modelos al iniciar el servidor ---
-try:
-    model = tf.keras.models.load_model('modelo_cardiovascular.h5')
-    scaler = joblib.load('scaler.joblib')
-    print("✅ Modelo y escalador cargados exitosamente.")
-except Exception as e:
-    print(f"❌ Error al cargar los archivos: {e}")
-    model = None
-    scaler = None
+# try:
+#     model = tf.keras.models.load_model('modelo_cardiovascular.h5')
+#     scaler = joblib.load('scaler.joblib')
+#     print("✅ Modelo y escalador cargados exitosamente.")
+# except Exception as e:
+#     print(f"❌ Error al cargar los archivos: {e}")
+#     model = None
+#     scaler = None
+
+def load_resources():
+    """Carga el modelo y el scaler solo una vez."""
+    global model, scaler
+
+    if model is None:
+        print("🔄 Cargando modelo IA...")
+        model = tf.keras.models.load_model('modelo_cardiovascular.h5')
+
+    if scaler is None:
+        print("🔄 Cargando scaler...")
+        scaler = joblib.load('scaler.joblib')
+
+load_resources()
+
 
 # Definir el orden exacto de las columnas que el modelo Keras espera
 EXPECTED_FEATURES = [
