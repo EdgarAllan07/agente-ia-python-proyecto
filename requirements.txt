@@ -6,3 +6,4 @@ joblib
 scikit-learn
 tensorflow-cpu==2.20.0
 gunicorn
+keras>=3.4.0
