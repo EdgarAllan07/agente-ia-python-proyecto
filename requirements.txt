@@ -3,5 +3,6 @@ flask-cors
 numpy
 pandas
 joblib
+scikit-learn
 tensorflow-cpu==2.20.0
 gunicorn
