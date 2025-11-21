@@ -27,25 +27,25 @@ scaler = None
 #     scaler = None
 
 def load_resources():
-    """Carga el modelo y el scaler solo una vez."""
+    """Carga el modelo y el scaler solo una vez (Lazy Loading)."""
     global model, scaler
 
     try:
         if model is None:
-            print("🔄 Cargando modelo IA...")
+            print("🔄 Cargando modelo IA (Lazy Load)...")
             model = tf.keras.models.load_model('modelo_cardiovascular.h5')
             print("✅ Modelo cargado exitosamente.")
 
         if scaler is None:
-            print("🔄 Cargando scaler...")
+            print("🔄 Cargando scaler (Lazy Load)...")
             scaler = joblib.load('scaler.joblib')
             print("✅ Scaler cargado exitosamente.")
     except Exception as e:
         print(f"❌ Error CRÍTICO al cargar recursos: {e}")
-        # No lanzamos error aquí para permitir que la app inicie y responda al health check
-        # pero el endpoint de predicción fallará controladamente.
+        # Permitimos que falle aquí para que el log lo muestre cuando se intente usar
 
-load_resources()
+# Eliminamos la llamada inmediata a load_resources() para evitar carga al inicio
+# load_resources()
 
 
 # Definir el orden exacto de las columnas que el modelo Keras espera
@@ -151,10 +151,14 @@ def health_check():
 
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate_risk_get():
-    return jsonify({"message": "Use POST method to evaluate risk"})
+    message = {"message": "Use POST method to evaluate risk"}
+    return jsonify(message)
     
 @app.route('/api/evaluate', methods=['POST'])
 def evaluate_risk():
+    # Cargar recursos bajo demanda si no están cargados
+    if model is None or scaler is None:
+        load_resources()
     
     if not model or not scaler:
         return jsonify({"error": "El modelo de IA no está disponible."}), 500
