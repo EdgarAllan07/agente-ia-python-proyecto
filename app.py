@@ -1,10 +1,15 @@
 import os
+import time
+import logging
 import joblib
 import numpy as np
 import tensorflow as tf
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # oculta warnings verbosos de TF
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
@@ -25,13 +30,20 @@ def load_resources():
     """Carga el modelo y el scaler solo una vez."""
     global model, scaler
 
-    if model is None:
-        print("🔄 Cargando modelo IA...")
-        model = tf.keras.models.load_model('modelo_cardiovascular.h5')
+    try:
+        if model is None:
+            print("🔄 Cargando modelo IA...")
+            model = tf.keras.models.load_model('modelo_cardiovascular.h5')
+            print("✅ Modelo cargado exitosamente.")
 
-    if scaler is None:
-        print("🔄 Cargando scaler...")
-        scaler = joblib.load('scaler.joblib')
+        if scaler is None:
+            print("🔄 Cargando scaler...")
+            scaler = joblib.load('scaler.joblib')
+            print("✅ Scaler cargado exitosamente.")
+    except Exception as e:
+        print(f"❌ Error CRÍTICO al cargar recursos: {e}")
+        # No lanzamos error aquí para permitir que la app inicie y responda al health check
+        # pero el endpoint de predicción fallará controladamente.
 
 load_resources()
 
@@ -127,17 +139,29 @@ def nivel_riesgo_coronario(prob_raw):
         return "Bajo"
 
 # --- RUTA DE API PRINCIPAL (ACTUALIZADA) ---
+@app.route('/', methods=['GET'])
+def health_check():
+    status = {
+        "status": "online",
+        "message": "Cardio Risk API is running",
+        "model_loaded": model is not None,
+        "scaler_loaded": scaler is not None
+    }
+    return jsonify(status)
+
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate_risk_get():
-    return jsonify({"message": "Hello, World!"})
+    return jsonify({"message": "Use POST method to evaluate risk"})
     
 @app.route('/api/evaluate', methods=['POST'])
 def evaluate_risk():
+    
     if not model or not scaler:
         return jsonify({"error": "El modelo de IA no está disponible."}), 500
 
     try:
         # 1. Obtener los datos JSON completos del backend de Node.js
+        
         data = request.json
         
         # 2. --- INICIO DEL ETL (Preparar datos para Keras) ---
